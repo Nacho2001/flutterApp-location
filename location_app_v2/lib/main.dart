@@ -2,16 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+// Función principal
 void main() {
   runApp(const MainApp());
 }
 
+// Widget principal
 class MainApp extends StatelessWidget {
   const MainApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      // Despliega el widget con estado
       home: CurrentLocationMap()
     );
   }
@@ -39,7 +42,9 @@ class _CurrentLocationMapState extends State<CurrentLocationMap> {
   // Posición de camara
   final CameraPosition _initialCameraPosition = 
   const CameraPosition(
+    // ubicación inicial
     target: LatLng(0.0,0.0),
+    // Zoom de mapa
     zoom: 14.0
   );
 
@@ -150,14 +155,21 @@ class _CurrentLocationMapState extends State<CurrentLocationMap> {
       // Borrar punto anterior marcado
       _markers.clear();
 
+      // Guarda id del pin marcado
       final pinId = MarkerId("pin_${_markers.length}");
+      // Crea el pin nuevo con los datos:
       final pin = Marker(
+        // pin ID
         markerId: pinId,
+        // Coordendas de ubicación
         position: tappedPosition,
+        // Cartel informativo
         infoWindow: const InfoWindow(title: "Punto seleccionado"),
+        // Icono y color del pin (amarillo)
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueYellow) 
       );
 
+      // Guarda el pin nuevo en colección
       _markers[pinId] = pin;
     });
 
@@ -182,17 +194,23 @@ class _CurrentLocationMapState extends State<CurrentLocationMap> {
       // Longitud de punto señalado
       _pinPosition.longitude
     );
+    // Calculada la distancia, devuelve el numero obtenido
     return distance;
   }
-  // Muestra dialogo con distacia entre ambos puntos
+  // Muestra dialogo con distacia entre ambos puntos al marcar un pin nuevo (función)
   void _distanceDialog(){
+    // Calcula la distancia ente ubicación y el pin (ambos guardados en el state)
     double distance = _calculateDistance();
+    // Widget de dialogo que se despliega
     showDialog(
       context: context, 
       builder: (context){
         return AlertDialog(
+          // Titulo de la alerta
           title: const Text("Distancia entre puntos"),
+          // Texto del contenido
           content: Text("Distancia: ${distance.toStringAsFixed(1)} metros"),
+          // Posibles acciones: Solo pulsar el botón OK
           actions: [
             TextButton(
               child: const Text("Ok"),
@@ -210,29 +228,44 @@ class _CurrentLocationMapState extends State<CurrentLocationMap> {
     return Scaffold(
       // AppBar con titulo
       appBar: AppBar(
-        title: const Center(child: Text("Mi Ubicación")),
+        title: const Center(child: Text("Fichador")),
         backgroundColor: Colors.green.shade300,
       ),
       // En el cuerpo, mapa de Google Maps que muestre la ubicación
-      body: GoogleMap(
-        // Posición inicial de la camara
-        initialCameraPosition: _initialCameraPosition,
-        // Cuando inicia el mapa, declara el controlador
-        onMapCreated: (GoogleMapController mapsController){
-          _controller = mapsController;
-        },
-        onTap: _newPin,
-        // Activa el boton para obtener la ubicación
-        myLocationEnabled: true,
-        myLocationButtonEnabled: true,
-        markers: Set<Marker>.of(_markers.values),
-      ),
-      
-      floatingActionButton: FloatingActionButton(
-        onPressed: _distanceDialog,
-        child: const Icon(Icons.close),
-        
-      ),
+      body: Stack(
+        children: [
+          GoogleMap(
+            // Posición inicial de la camara
+            initialCameraPosition: _initialCameraPosition,
+            // Cuando inicia el mapa, declara el controlador
+            onMapCreated: (GoogleMapController mapsController){
+              _controller = mapsController;
+            },
+            onTap: _newPin,
+            // Activa el boton para obtener la ubicación
+            myLocationEnabled: true,
+            myLocationButtonEnabled: true,
+            markers: Set<Marker>.of(_markers.values),
+          ),
+          Positioned(
+            bottom: 25,
+            left: 20,
+            child: FloatingActionButton(
+              onPressed: (){
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      _inRange ? "Fichaje correcto" : "No se encuentra cerca del punto de fichaje"
+                    ),
+                  )
+                );
+              },
+              backgroundColor: _inRange ? Colors.green : Colors.red,
+              child: Icon(_inRange ? Icons.check : Icons.warning)
+            )
+          )
+        ],
+      )
     );
   }
 }
