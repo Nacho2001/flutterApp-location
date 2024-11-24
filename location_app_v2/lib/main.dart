@@ -231,9 +231,10 @@ class _CurrentLocationMapState extends State<CurrentLocationMap> {
         title: const Center(child: Text("Fichador")),
         backgroundColor: Colors.green.shade300,
       ),
-      // En el cuerpo, mapa de Google Maps que muestre la ubicación
+      // Widget Stack para colocar 2 widget, el mapa de google maps y el boton flotante
       body: Stack(
         children: [
+          // Mapa de google Maps
           GoogleMap(
             // Posición inicial de la camara
             initialCameraPosition: _initialCameraPosition,
@@ -245,21 +246,30 @@ class _CurrentLocationMapState extends State<CurrentLocationMap> {
             // Activa el boton para obtener la ubicación
             myLocationEnabled: true,
             myLocationButtonEnabled: true,
+            // Ver pin en el mapa
             markers: Set<Marker>.of(_markers.values),
           ),
+          // widget positioned para colocar boton flotante en esquina inferior izquierda de pantalla
           Positioned(
+            // Elevación
             bottom: 25,
+            // Margen izquierdo
             left: 20,
+            // Boton flotante para fichar
             child: FloatingActionButton(
               onPressed: (){
+                // Al presionar muestra SnackBar con mensaje
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
+                      // Dependiendo de la distancia del usuario del marcador, saldrá un mensaje u otro
                       _inRange ? "Fichaje correcto" : "No se encuentra cerca del punto de fichaje"
                     ),
                   )
                 );
               },
+              /// Si el usuario si encuentra dentro del rango de 15 metros, el botón será verde con 
+              /// Icono de tilde, si no es así, el botón será rojo con ícono warning
               backgroundColor: _inRange ? Colors.green : Colors.red,
               child: Icon(_inRange ? Icons.check : Icons.warning)
             )
